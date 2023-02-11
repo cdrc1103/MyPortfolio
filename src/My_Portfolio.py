@@ -37,5 +37,12 @@ if order_book is not None:
 
     # Portfolio Balance
     portfolio_balance = calculate_portfolio_balance(order_book, START_DATE, END_DATE)
-    fig = px.pie(portfolio_balance, values='Value', names='Full Name', title=f"Portfolio at {END_DATE.strftime('%d-%m-%Y')}", width=600, height=600)
+    fig = px.pie(
+        portfolio_balance,
+        values="Value",
+        names="Full Name",
+        title=f"Portfolio at {END_DATE.strftime('%d-%m-%Y')}",
+        width=600,
+        height=600,
+    )
     st.plotly_chart(fig)
