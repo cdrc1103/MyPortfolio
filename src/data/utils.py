@@ -1,23 +1,27 @@
 from datetime import date
-from pathlib import Path
+from pandas.errors import ParserError
 
 import pandas as pd
 import yfinance as yf
 import streamlit as st
-
-base_path = Path("src/data")
+from streamlit.runtime.uploaded_file_manager import UploadedFile
 
     
-def load_file(file_name: str) -> pd.DataFrame:
+def load_file(file: UploadedFile) -> pd.DataFrame:
     """Load order book from file"""
-    order_book = pd.read_csv(base_path.joinpath(f"{file_name}.csv"))
+    try:
+        order_book = pd.read_csv(file)
+    except ParserError:
+        st.warning("Uploaded file is not of type .csv or corrupted")
+        return None
+    
     order_book["Order Date"] = pd.to_datetime(order_book["Order Date"]).dt.date
     return order_book
 
 
 def update_file(file_name: str, data_frame: pd.DataFrame) -> pd.DataFrame:
     """Update order book file"""
-    file_path = base_path.joinpath(f"{file_name}.csv")
+    file_path = file_path.joinpath(f"{file_name}.csv")
     data_frame.to_csv(file_path)
     data_frame = load_file(file_path)
     return data_frame
@@ -36,11 +40,3 @@ def download_stock_data(ticker_list: list[str], start_date: date, end_date: date
 #     table = pd.concat([table, row], axis=0)
 #     db_connection = sl.connect(db_name)
 #     table.to_sql("ticker_base_table", db_connection, if_exists="replace", index=True, index_label="Ticker")
-    
-    
-# def load_ticker_base_table(db_name=db_path):
-#     """Load order book from database"""
-#     db_connection = sl.connect(db_name)
-#     return pd.read_sql(
-#         f"select * from ticker_base_table", db_connection
-#     ).set_index(["Ticker"])

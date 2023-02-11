@@ -1,6 +1,6 @@
 from datetime import datetime
 import pandas as pd
-
+import streamlit as st
 from data.utils import download_stock_data
 
 
@@ -17,8 +17,8 @@ def calculate_portfolio_balance(order_book: pd.DataFrame, start_date: datetime, 
     balance = pd.DataFrame(balance[balance["Number"] != 0]["Number"].astype(int))
     balance = balance.merge(full_names, left_on=balance.index, right_on="Ticker").sort_values("Full Name").set_index("Ticker")
 
-
-    stock_prices = download_stock_data(balance.index.to_list(), start_date, end_date)
+    with st.spinner("Downloading historical stock prices..."):
+        stock_prices = download_stock_data(balance.index.to_list(), start_date, end_date)
     balance["Closing Price"] = pd.DataFrame(stock_prices["Close"].iloc[-1,:])
     balance["Value"] = balance["Number"] * balance["Closing Price"]
     return balance
