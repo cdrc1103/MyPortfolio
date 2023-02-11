@@ -7,11 +7,13 @@ import streamlit as st
 
 base_path = Path("src/data")
 
-    
+
+@st.cache
 def load_file(file_name: str) -> pd.DataFrame:
     """Load order book from file"""
     order_book = pd.read_csv(base_path.joinpath(f"{file_name}.csv"))
-    order_book["Order Date"] = pd.to_datetime(order_book["Order Date"]).dt.date
+    if "Order Date" in order_book.columns:
+        order_book["Order Date"] = pd.to_datetime(order_book["Order Date"]).dt.date
     return order_book
 
 

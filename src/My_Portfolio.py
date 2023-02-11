@@ -1,14 +1,13 @@
 import streamlit as st
-import plotly.express as px
 
 from datetime import datetime
 
 from style import max_page_width, streamlit_style
-from settings import START_DATE
+from settings import START_DATE, END_DATE
 from data.utils import load_file
+from constants import ORDER_BOOK
 from portfolio.status import calculate_portfolio_balance
-
-END_DATE = datetime.today().date()
+from portfolio.graphs import plot_portfolio_balance
 
 # Page config
 st.set_page_config(
@@ -23,9 +22,8 @@ st.markdown(max_page_width("1400"), unsafe_allow_html=True)
 st.header("My Portfolio")
 
 # Load order book
-order_book = load_file("order_book")
+order_book = load_file(ORDER_BOOK)
 
 # Portfolio Balance
 portfolio_balance = calculate_portfolio_balance(order_book, START_DATE, END_DATE)
-fig = px.pie(portfolio_balance, values='Value', names='Full Name', title=f"Portfolio at {END_DATE.strftime('%d-%m-%Y')}", width=600, height=600)
-st.plotly_chart(fig)
+st.plotly_chart(plot_portfolio_balance(END_DATE, portfolio_balance))
