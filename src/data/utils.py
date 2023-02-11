@@ -12,7 +12,7 @@ def load_file(file: UploadedFile) -> pd.DataFrame:
     try:
         order_book = pd.read_csv(file)
     except ParserError:
-        st.warning("Uploaded file is not of type .csv or corrupted")
+        st.warning("Uploaded file is corrupted.")
         return None
 
     order_book["Order Date"] = pd.to_datetime(order_book["Order Date"]).dt.date
@@ -27,7 +27,7 @@ def update_file(file_name: str, data_frame: pd.DataFrame) -> pd.DataFrame:
     return data_frame
 
 
-@st.cache
+@st.cache(show_spinner=False)
 def download_stock_data(
     ticker_list: list[str], start_date: date, end_date: date
 ) -> pd.DataFrame:
@@ -40,11 +40,3 @@ def download_stock_data(
         actions=True,
     )
     return data
-
-
-# def add_ticker(ticker_de: str, ticker_us: str, currency: str, source_tax: float, db_name: str = db_path):
-#     table = load_ticker_base_table().set_index("Ticker")
-#     row = pd.DataFrame([{"currency": currency, "source tax": source_tax, "ticker us": ticker_us}], index=[ticker_de])
-#     table = pd.concat([table, row], axis=0)
-#     db_connection = sl.connect(db_name)
-#     table.to_sql("ticker_base_table", db_connection, if_exists="replace", index=True, index_label="Ticker")

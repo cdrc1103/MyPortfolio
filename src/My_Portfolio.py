@@ -1,7 +1,5 @@
 import streamlit as st
-import plotly.express as px
 from constants import ORDER_BOOK
-from datetime import datetime
 
 from style import max_page_width, streamlit_style
 from settings import START_DATE, END_DATE
@@ -29,7 +27,7 @@ st.header("My Portfolio")
 order_book = st.session_state[ORDER_BOOK]
 with st.sidebar:
     # Load order book
-    order_book_file = st.file_uploader("Upload order_book.csv")
+    order_book_file = st.file_uploader("Upload order book .csv file:", type=["csv"])
     if order_book_file is not None and order_book is None:
         order_book = load_file(order_book_file)
         st.session_state[ORDER_BOOK] = order_book
@@ -37,5 +35,7 @@ with st.sidebar:
 # Content
 if order_book is not None:
     # Portfolio Balance
-    portfolio_balance = calculate_portfolio_balance(order_book, START_DATE, END_DATE)
+    portfolio_balance = calculate_portfolio_balance(
+        order_book, START_DATE, END_DATE
+    ).copy()
     st.plotly_chart(plot_portfolio_balance(END_DATE, portfolio_balance))

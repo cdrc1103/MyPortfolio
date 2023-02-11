@@ -4,6 +4,7 @@ import streamlit as st
 from data.utils import download_stock_data
 
 
+@st.cache(show_spinner=False)
 def calculate_portfolio_balance(
     order_book: pd.DataFrame, start_date: datetime, end_date: datetime
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
