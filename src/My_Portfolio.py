@@ -25,16 +25,17 @@ if ORDER_BOOK not in st.session_state:
 # Header and Intro
 st.header("My Portfolio")
 
+# Settings
+order_book = st.session_state[ORDER_BOOK]
 with st.sidebar:
     # Load order book
     order_book_file = st.file_uploader("Upload order_book.csv")
-    if order_book_file is not None:
+    if order_book_file is not None and order_book is None:
         order_book = load_file(order_book_file)
         st.session_state[ORDER_BOOK] = order_book
 
-
+# Content
 if order_book is not None:
-
     # Portfolio Balance
     portfolio_balance = calculate_portfolio_balance(order_book, START_DATE, END_DATE)
     st.plotly_chart(plot_portfolio_balance(END_DATE, portfolio_balance))
