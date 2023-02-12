@@ -5,10 +5,11 @@ import plotly.express as px
 import plotly.graph_objects as go
 from math import ceil
 import numpy as np
-
+import streamlit as st
 from data.utils import download_stock_data
 
 
+@st.cache(show_spinner=False, allow_output_mutation=True)
 def plot_portfolio_balance(end_date, portfolio_balance):
     """Plot balance of portfolio as pie chart"""
     return px.pie(
@@ -21,6 +22,7 @@ def plot_portfolio_balance(end_date, portfolio_balance):
     )
 
 
+@st.cache(show_spinner=False, allow_output_mutation=True)
 def plot_historic_prices(
     start_date: datetime,
     end_date: datetime,

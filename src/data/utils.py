@@ -1,5 +1,6 @@
 from datetime import date
 from pandas.errors import ParserError
+from constants import ORDER_BOOK
 
 import pandas as pd
 import yfinance as yf
@@ -40,3 +41,12 @@ def download_stock_data(
         actions=True,
     )
     return data
+
+
+def load_order_book() -> None:
+    "Load order book file to data frame"
+    order_book_file = st.file_uploader("Upload order book .csv file:", type=["csv"])
+    if order_book_file is not None and st.session_state[ORDER_BOOK] is None:
+        st.session_state[ORDER_BOOK] = load_file(order_book_file)
+    if st.session_state[ORDER_BOOK] is not None:
+        st.success("Order book available")
