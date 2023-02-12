@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 from math import ceil
 import random
 import streamlit as st
-from data.utils import download_stock_data
+from data.utils import download_price_data
 
 qualitative_color_scale = px.colors.qualitative.Plotly
 
@@ -23,7 +23,7 @@ def plot_portfolio_balance(end_date, portfolio_balance):
     )
 
 
-# @st.cache(show_spinner=False, allow_output_mutation=True)
+@st.cache(show_spinner=False, allow_output_mutation=True)
 def plot_historic_prices(
     orders: pd.DataFrame, prices: pd.Series, ticker_name: str, full_name: str
 ):
@@ -34,9 +34,22 @@ def plot_historic_prices(
     ticker_history = pd.DataFrame()
     ticker_history["sma"] = prices.rolling(30).mean()
     ticker_history["std"] = prices.rolling(30).std(ddof=0)
+    ticker_history["200d"] = prices.rolling(200).mean()
     ticker_history["close"] = prices
 
     fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter(
+            x=ticker_history.index,
+            y=ticker_history["200d"],
+            line_color="blue",
+            line={"dash": "dash"},
+            opacity=0.3,
+            showlegend=False,
+            name="200 Days MA",
+        )
+    )
 
     fig.add_trace(
         go.Scatter(
@@ -134,7 +147,7 @@ def orchestrate_price_plot(
         order_book["Order Date"] <= end_date.date()
     )
     orders = order_book.loc[filter].copy()
-    historical_prices = download_stock_data(
+    historical_prices = download_price_data(
         list(ticker_map.keys()), start_date.date(), end_date.date()
     ).copy()
     historical_prices.index = historical_prices.index.tz_localize(None)

@@ -34,9 +34,10 @@ if order_book is not None:
     selected_tickers = st.multiselect(
         "Select tickers to show historical prices:", tickers, balance.index.tolist()
     )
-    selected_tickers = {
+    ticker_map = {
         ticker: full_name
         for ticker, full_name in ticker_map.loc[selected_tickers, "Full Name"].items()
     }
 
-    fig = orchestrate_price_plot(order_book, selected_tickers, START_DATE, END_DATE)
+    if selected_tickers:
+        fig = orchestrate_price_plot(order_book, selected_tickers, START_DATE, END_DATE)

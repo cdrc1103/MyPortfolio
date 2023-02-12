@@ -29,10 +29,10 @@ def update_file(file_name: str, data_frame: pd.DataFrame) -> pd.DataFrame:
 
 
 @st.cache(show_spinner=False)
-def download_stock_data(
+def download_price_data(
     ticker_list: list[str], start_date: date, end_date: date
 ) -> pd.DataFrame:
-    """Build pipeline to download stock prices"""
+    """Download stock prices"""
     data = yf.download(
         tickers=" ".join(ticker_list),
         start=start_date,
@@ -41,6 +41,15 @@ def download_stock_data(
         actions=True,
     )
     return data
+
+
+@st.cache(show_spinner=False)
+def download_info_data(ticker: str) -> dict:
+    """Download stock info"""
+    try:
+        return yf.Ticker(ticker).info
+    except KeyError:
+        return None
 
 
 def load_order_book() -> None:
