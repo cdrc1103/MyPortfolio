@@ -1,8 +1,9 @@
 import streamlit as st
-
+from settings import START_DATE, END_DATE
 from constants import ORDER_BOOK
 from data.utils import load_order_book
-from portfolio.graphs import plot_historic_prices
+from portfolio.graphs import orchestrate_price_plot, plot_historic_prices
+from portfolio.status import calculate_portfolio_balance
 from settings import START_DATE, END_DATE
 
 # Page config
@@ -25,16 +26,17 @@ with st.sidebar:
 # Content
 order_book = st.session_state[ORDER_BOOK]
 if order_book is not None:
+    balance = calculate_portfolio_balance(order_book, START_DATE, END_DATE).copy()
     ticker_map = (
         order_book[["Ticker", "Full Name"]].drop_duplicates().set_index(["Ticker"])
     )
     tickers = ticker_map.index.to_list()
     selected_tickers = st.multiselect(
-        "Select tickers to show historical prices:", tickers, tickers[0:4]
+        "Select tickers to show historical prices:", tickers, balance.index.tolist()
     )
-    selected_fullnames = ticker_map.loc[selected_tickers, "Full Name"].to_list()
+    selected_tickers = {
+        ticker: full_name
+        for ticker, full_name in ticker_map.loc[selected_tickers, "Full Name"].items()
+    }
 
-    fig = plot_historic_prices(
-        START_DATE, END_DATE, order_book, selected_tickers, selected_fullnames
-    )
-    st.plotly_chart(fig)
+    fig = orchestrate_price_plot(order_book, selected_tickers, START_DATE, END_DATE)

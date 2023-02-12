@@ -1,12 +1,13 @@
 import pandas as pd
 from datetime import datetime
-from plotly.subplots import make_subplots
 import plotly.express as px
 import plotly.graph_objects as go
 from math import ceil
-import numpy as np
+import random
 import streamlit as st
 from data.utils import download_stock_data
+
+qualitative_color_scale = px.colors.qualitative.Plotly
 
 
 @st.cache(show_spinner=False, allow_output_mutation=True)
@@ -22,105 +23,74 @@ def plot_portfolio_balance(end_date, portfolio_balance):
     )
 
 
-@st.cache(show_spinner=False, allow_output_mutation=True)
+# @st.cache(show_spinner=False, allow_output_mutation=True)
 def plot_historic_prices(
-    start_date: datetime,
-    end_date: datetime,
-    order_book: pd.DataFrame,
-    ticker_names: list[str],
-    full_names: list[str],
+    orders: pd.DataFrame, prices: pd.Series, ticker_name: str, full_name: str
 ):
     """Plot historical prices with bollinger bands"""
 
     color_code = {"Buy": "green", "Sell": "red"}
 
-    filter = (order_book["Order Date"] >= start_date.date()) & (
-        order_book["Order Date"] <= end_date.date()
+    ticker_history = pd.DataFrame()
+    ticker_history["sma"] = prices.rolling(30).mean()
+    ticker_history["std"] = prices.rolling(30).std(ddof=0)
+    ticker_history["close"] = prices
+
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter(
+            x=ticker_history.index,
+            y=ticker_history["sma"] + (ticker_history["std"] * 2),
+            line_color="gray",
+            line={"dash": "dash"},
+            opacity=0.3,
+            showlegend=False,
+            name="Upper BB",
+        )
     )
-    orders = order_book.loc[filter].copy()
 
-    complete_data = download_stock_data(
-        ticker_names, start_date.date(), end_date.date()
-    ).copy()
-    complete_data.index = complete_data.index.tz_localize(None)
-    # filter = (complete_data.index >= start_date) & (complete_data.index <= end_date)
-    # history = complete_data.loc[filter].copy()
-    history = complete_data
+    fig.add_trace(
+        go.Scatter(
+            x=ticker_history.index,
+            y=ticker_history["sma"] - (ticker_history["std"] * 2),
+            line_color="gray",
+            line={"dash": "dash"},
+            fill="tonexty",
+            opacity=0.3,
+            showlegend=False,
+            name="Lower BB",
+        )
+    )
 
-    cols = 2
-    rows = ceil(len(ticker_names) / cols)
-    grid = np.mgrid[1 : rows + 1, 1 : cols + 1]
-    col_index = np.ravel(grid[1])
-    row_index = np.ravel(grid[0])
+    fig.add_trace(
+        go.Scatter(
+            x=ticker_history.index,
+            y=ticker_history["close"],
+            line_color=random.choice(qualitative_color_scale),
+            name=ticker_name,
+            showlegend=False,
+        )
+    )
 
-    fig = make_subplots(rows=rows, cols=cols, subplot_titles=tuple(full_names))
-
-    for i, ticker in enumerate(ticker_names):
-        ticker_history = pd.DataFrame()
-        ticker_history["sma"] = history["Close"][ticker].rolling(30).mean()
-        ticker_history["std"] = history["Close"][ticker].rolling(30).std(ddof=0)
-        ticker_history["close"] = history["Close"][ticker]
-        ticker_history["volume"] = history["Volume"][ticker]
-
-        fig.append_trace(
-            go.Scatter(
-                x=ticker_history.index,
-                y=ticker_history["sma"] + (ticker_history["std"] * 2),
-                line_color="gray",
-                line={"dash": "dash"},
-                opacity=0.3,
-                showlegend=False,
-            ),
-            row=row_index[i],
-            col=col_index[i],
+    for _, order in orders.iterrows():
+        fig.add_vline(
+            x=datetime.combine(order["Order Date"], datetime.min.time()).timestamp()
+            * 1000,
+            line_width=1.5,
+            line_dash="dash",
+            line_color=color_code[order["Order Type"]],
         )
 
-        fig.append_trace(
-            go.Scatter(
-                x=ticker_history.index,
-                y=ticker_history["sma"] - (ticker_history["std"] * 2),
-                line_color="gray",
-                line={"dash": "dash"},
-                fill="tonexty",
-                opacity=0.3,
-                showlegend=False,
-            ),
-            row=row_index[i],
-            col=col_index[i],
+    fig.add_trace(
+        go.Scatter(
+            x=ticker_history.index,
+            y=ticker_history["sma"],
+            line_color="gray",
+            showlegend=False,
+            name="SMA",
         )
-
-        fig.append_trace(
-            go.Scatter(
-                x=ticker_history.index,
-                y=ticker_history["close"],
-                name=ticker,
-                showlegend=False,
-            ),
-            row=row_index[i],
-            col=col_index[i],
-        )
-
-        ticker_orders = orders[orders["Ticker"] == ticker]
-        for _, order in ticker_orders.iterrows():
-            fig.add_vline(
-                x=order["Order Date"],
-                line_width=1.5,
-                line_dash="dash",
-                line_color=color_code[order["Order Type"]],
-                row=row_index[i],
-                col=col_index[i],
-            )
-
-        fig.append_trace(
-            go.Scatter(
-                x=ticker_history.index,
-                y=ticker_history["sma"],
-                line_color="gray",
-                showlegend=False,
-            ),
-            row=row_index[i],
-            col=col_index[i],
-        )
+    )
 
     fig.update_xaxes(
         rangeslider_visible=False,
@@ -137,6 +107,48 @@ def plot_historic_prices(
         ),
     )
 
-    fig.update_layout(height=rows * 400, width=cols * 600, title_text="")
+    fig.update_layout(height=400, width=600, title_text=full_name)
 
     return fig
+
+
+def make_grid(number_of_plots: int, cols: int = 2) -> tuple[list[int], int, int]:
+    """Make plot grid"""
+    rows = ceil(number_of_plots / cols)
+
+    grid = [0] * rows
+    for i in range(rows):
+        with st.container():
+            grid[i] = st.columns(cols)
+    return grid, rows, cols
+
+
+def orchestrate_price_plot(
+    order_book: pd.DataFrame,
+    ticker_map: dict[str, str],
+    start_date: datetime,
+    end_date: datetime,
+) -> None:
+    """Orchestrate generated historical prices plots into grid"""
+    filter = (order_book["Order Date"] >= start_date.date()) & (
+        order_book["Order Date"] <= end_date.date()
+    )
+    orders = order_book.loc[filter].copy()
+    historical_prices = download_stock_data(
+        list(ticker_map.keys()), start_date.date(), end_date.date()
+    ).copy()
+    historical_prices.index = historical_prices.index.tz_localize(None)
+    grid, rows, cols = make_grid(len(ticker_map.keys()))
+    ticker_iterator = iter(ticker_map.items())
+
+    for row in range(rows):
+        for col in range(cols):
+            ticker, full_name = next(ticker_iterator)
+            grid[row][col].plotly_chart(
+                plot_historic_prices(
+                    orders[orders["Ticker"] == ticker],
+                    historical_prices["Close"][ticker].copy(),
+                    ticker,
+                    full_name,
+                )
+            )
