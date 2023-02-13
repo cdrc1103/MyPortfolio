@@ -6,14 +6,12 @@ from data.utils import download_price_data
 
 @st.cache(show_spinner=False)
 def calculate_portfolio_balance(
-    order_book: pd.DataFrame, start_date: datetime, end_date: datetime
+    orders: pd.DataFrame, start_date: datetime, end_date: datetime
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     start_date = start_date.date()
     end_date = end_date.date()
-    filter = (order_book["Order Date"] >= start_date) & (
-        order_book["Order Date"] <= end_date
-    )
-    portfolio = order_book.loc[filter].copy()
+    filter = (orders["Order Date"] >= start_date) & (orders["Order Date"] <= end_date)
+    portfolio = orders.loc[filter].copy()
     full_names = (
         portfolio[["Full Name", "Ticker"]].drop_duplicates().set_index(["Ticker"])
     )

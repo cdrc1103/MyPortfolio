@@ -1,10 +1,9 @@
 import streamlit as st
-from constants import ORDER_BOOK
+from constants import ORDERS
 
-from style import max_page_width, streamlit_style
 from settings import START_DATE, END_DATE
-from data.utils import load_file, load_order_book
-from constants import ORDER_BOOK
+from data.utils import setup_sidebar
+from constants import ORDERS
 from portfolio.status import calculate_portfolio_balance
 from portfolio.graphs import plot_portfolio_balance
 
@@ -15,22 +14,20 @@ st.set_page_config(
 )
 
 # Set session state variables
-if ORDER_BOOK not in st.session_state:
-    st.session_state[ORDER_BOOK] = None
+if ORDERS not in st.session_state:
+    st.session_state[ORDERS] = None
 
 # Header and Intro
 st.header("My Portfolio")
 
 # Sidebar
 with st.sidebar:
-    load_order_book()
+    setup_sidebar()
 
 
 # Content
-order_book = st.session_state[ORDER_BOOK]
-if order_book is not None:
+orders = st.session_state[ORDERS]
+if orders is not None:
     # Portfolio Balance
-    portfolio_balance = calculate_portfolio_balance(
-        order_book, START_DATE, END_DATE
-    ).copy()
+    portfolio_balance = calculate_portfolio_balance(orders, START_DATE, END_DATE).copy()
     st.plotly_chart(plot_portfolio_balance(END_DATE, portfolio_balance))

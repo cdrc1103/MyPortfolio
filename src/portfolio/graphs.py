@@ -43,9 +43,8 @@ def plot_historic_prices(
         go.Scatter(
             x=ticker_history.index,
             y=ticker_history["200d"],
-            line_color="blue",
+            line_color="white",
             line={"dash": "dash"},
-            opacity=0.3,
             showlegend=False,
             name="200 Days MA",
         )
@@ -137,16 +136,16 @@ def make_grid(number_of_plots: int, cols: int = 2) -> tuple[list[int], int, int]
 
 
 def orchestrate_price_plot(
-    order_book: pd.DataFrame,
+    orders: pd.DataFrame,
     ticker_map: dict[str, str],
     start_date: datetime,
     end_date: datetime,
 ) -> None:
     """Orchestrate generated historical prices plots into grid"""
-    filter = (order_book["Order Date"] >= start_date.date()) & (
-        order_book["Order Date"] <= end_date.date()
+    filter = (orders["Order Date"] >= start_date.date()) & (
+        orders["Order Date"] <= end_date.date()
     )
-    orders = order_book.loc[filter].copy()
+    filtered_orders = orders.loc[filter].copy()
     historical_prices = download_price_data(
         list(ticker_map.keys()), start_date.date(), end_date.date()
     ).copy()
@@ -156,10 +155,13 @@ def orchestrate_price_plot(
 
     for row in range(rows):
         for col in range(cols):
-            ticker, full_name = next(ticker_iterator)
+            ticker, full_name = next(ticker_iterator, (None, None))
+            if ticker is None:
+                continue
+
             grid[row][col].plotly_chart(
                 plot_historic_prices(
-                    orders[orders["Ticker"] == ticker],
+                    filtered_orders[filtered_orders["Ticker"] == ticker],
                     historical_prices["Close"][ticker].copy(),
                     ticker,
                     full_name,

@@ -1,8 +1,8 @@
 import streamlit as st
 from settings import START_DATE, END_DATE
-from constants import ORDER_BOOK
-from data.utils import load_order_book
-from portfolio.graphs import orchestrate_price_plot, plot_historic_prices
+from constants import ORDERS
+from data.utils import setup_sidebar
+from portfolio.graphs import orchestrate_price_plot
 from portfolio.status import calculate_portfolio_balance
 from settings import START_DATE, END_DATE
 
@@ -13,31 +13,28 @@ st.set_page_config(
 )
 
 # Set session state variables
-if ORDER_BOOK not in st.session_state:
-    st.session_state[ORDER_BOOK] = None
+if ORDERS not in st.session_state:
+    st.session_state[ORDERS] = None
 
 # Header and Intro
 st.header("Historical Prices")
 
 # Sidebar
 with st.sidebar:
-    load_order_book()
+    setup_sidebar()
 
 # Content
-order_book = st.session_state[ORDER_BOOK]
-if order_book is not None:
-    balance = calculate_portfolio_balance(order_book, START_DATE, END_DATE).copy()
-    ticker_map = (
-        order_book[["Ticker", "Full Name"]].drop_duplicates().set_index(["Ticker"])
-    )
-    tickers = ticker_map.index.to_list()
+orders = st.session_state[ORDERS]
+if orders is not None:
+    balance = calculate_portfolio_balance(orders, START_DATE, END_DATE).copy()
+    stocks = orders[["Ticker", "Full Name"]].drop_duplicates().set_index(["Ticker"])
+    tickers = stocks.index.to_list()
     selected_tickers = st.multiselect(
         "Select tickers to show historical prices:", tickers, balance.index.tolist()
     )
-    ticker_map = {
-        ticker: full_name
-        for ticker, full_name in ticker_map.loc[selected_tickers, "Full Name"].items()
-    }
-
     if selected_tickers:
-        fig = orchestrate_price_plot(order_book, selected_tickers, START_DATE, END_DATE)
+        ticker_map = {
+            ticker: full_name
+            for ticker, full_name in stocks.loc[selected_tickers, "Full Name"].items()
+        }
+        fig = orchestrate_price_plot(orders, ticker_map, START_DATE, END_DATE)

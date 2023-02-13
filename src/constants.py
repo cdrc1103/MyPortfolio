@@ -1,2 +1,2 @@
-ORDER_BOOK = "order_book"
+ORDERS = "orders"
 TICKER_BASE = "ticker_base"
