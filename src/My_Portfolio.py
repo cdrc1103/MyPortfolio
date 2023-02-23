@@ -2,7 +2,7 @@ import streamlit as st
 from constants import ORDERS
 
 from settings import START_DATE, END_DATE
-from data.utils import setup_sidebar
+from sidebar import setup_sidebar
 from constants import ORDERS
 from portfolio.status import calculate_portfolio_balance
 from portfolio.graphs import plot_portfolio_balance

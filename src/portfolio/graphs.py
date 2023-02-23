@@ -10,7 +10,7 @@ from data.utils import download_price_data
 qualitative_color_scale = px.colors.qualitative.Plotly
 
 
-@st.cache(show_spinner=False, allow_output_mutation=True)
+@st.cache_data(show_spinner=False)
 def plot_portfolio_balance(end_date, portfolio_balance):
     """Plot balance of portfolio as pie chart"""
     return px.pie(
@@ -23,7 +23,7 @@ def plot_portfolio_balance(end_date, portfolio_balance):
     )
 
 
-@st.cache(show_spinner=False, allow_output_mutation=True)
+@st.cache_data(show_spinner=False)
 def plot_historic_prices(
     orders: pd.DataFrame, prices: pd.Series, ticker_name: str, full_name: str
 ):

@@ -1,7 +1,7 @@
 import streamlit as st
 from settings import START_DATE, END_DATE
 from constants import ORDERS
-from data.utils import setup_sidebar
+from sidebar import setup_sidebar
 from portfolio.graphs import orchestrate_price_plot
 from portfolio.status import calculate_portfolio_balance
 from settings import START_DATE, END_DATE
