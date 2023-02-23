@@ -5,12 +5,12 @@ import plotly.graph_objects as go
 from math import ceil
 import random
 import streamlit as st
-from data.utils import download_stock_data
+from data.utils import download_price_data
 
 qualitative_color_scale = px.colors.qualitative.Plotly
 
 
-@st.cache(show_spinner=False, allow_output_mutation=True)
+@st.cache_data(show_spinner=False)
 def plot_portfolio_balance(end_date, portfolio_balance):
     """Plot balance of portfolio as pie chart"""
     return px.pie(
@@ -23,7 +23,7 @@ def plot_portfolio_balance(end_date, portfolio_balance):
     )
 
 
-# @st.cache(show_spinner=False, allow_output_mutation=True)
+@st.cache_data(show_spinner=False)
 def plot_historic_prices(
     orders: pd.DataFrame, prices: pd.Series, ticker_name: str, full_name: str
 ):
@@ -34,9 +34,21 @@ def plot_historic_prices(
     ticker_history = pd.DataFrame()
     ticker_history["sma"] = prices.rolling(30).mean()
     ticker_history["std"] = prices.rolling(30).std(ddof=0)
+    ticker_history["200d"] = prices.rolling(200).mean()
     ticker_history["close"] = prices
 
     fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter(
+            x=ticker_history.index,
+            y=ticker_history["200d"],
+            line_color="white",
+            line={"dash": "dash"},
+            showlegend=False,
+            name="200 Days MA",
+        )
+    )
 
     fig.add_trace(
         go.Scatter(
@@ -124,17 +136,17 @@ def make_grid(number_of_plots: int, cols: int = 2) -> tuple[list[int], int, int]
 
 
 def orchestrate_price_plot(
-    order_book: pd.DataFrame,
+    orders: pd.DataFrame,
     ticker_map: dict[str, str],
     start_date: datetime,
     end_date: datetime,
 ) -> None:
     """Orchestrate generated historical prices plots into grid"""
-    filter = (order_book["Order Date"] >= start_date.date()) & (
-        order_book["Order Date"] <= end_date.date()
+    filter = (orders["Order Date"] >= start_date.date()) & (
+        orders["Order Date"] <= end_date.date()
     )
-    orders = order_book.loc[filter].copy()
-    historical_prices = download_stock_data(
+    filtered_orders = orders.loc[filter].copy()
+    historical_prices = download_price_data(
         list(ticker_map.keys()), start_date.date(), end_date.date()
     ).copy()
     historical_prices.index = historical_prices.index.tz_localize(None)
@@ -143,10 +155,13 @@ def orchestrate_price_plot(
 
     for row in range(rows):
         for col in range(cols):
-            ticker, full_name = next(ticker_iterator)
+            ticker, full_name = next(ticker_iterator, (None, None))
+            if ticker is None:
+                continue
+
             grid[row][col].plotly_chart(
                 plot_historic_prices(
-                    orders[orders["Ticker"] == ticker],
+                    filtered_orders[filtered_orders["Ticker"] == ticker],
                     historical_prices["Close"][ticker].copy(),
                     ticker,
                     full_name,

@@ -1,19 +1,17 @@
 from datetime import datetime
 import pandas as pd
 import streamlit as st
-from data.utils import download_stock_data
+from data.utils import download_price_data
 
 
-@st.cache(show_spinner=False)
+@st.cache_data(show_spinner=False)
 def calculate_portfolio_balance(
-    order_book: pd.DataFrame, start_date: datetime, end_date: datetime
+    orders: pd.DataFrame, start_date: datetime, end_date: datetime
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     start_date = start_date.date()
     end_date = end_date.date()
-    filter = (order_book["Order Date"] >= start_date) & (
-        order_book["Order Date"] <= end_date
-    )
-    portfolio = order_book.loc[filter].copy()
+    filter = (orders["Order Date"] >= start_date) & (orders["Order Date"] <= end_date)
+    portfolio = orders.loc[filter].copy()
     full_names = (
         portfolio[["Full Name", "Ticker"]].drop_duplicates().set_index(["Ticker"])
     )
@@ -31,7 +29,7 @@ def calculate_portfolio_balance(
     )
 
     with st.spinner("Downloading historical stock prices..."):
-        stock_prices = download_stock_data(
+        stock_prices = download_price_data(
             balance.index.to_list(), start_date, end_date
         ).copy()
     balance["Closing Price"] = pd.DataFrame(stock_prices["Close"].iloc[-1, :])
