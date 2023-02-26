@@ -22,7 +22,9 @@ def calculate_portfolio_balance(
     balance["Number"] = balance["buys"] - balance["sells"]
     balance = pd.DataFrame(balance[balance["Number"] != 0]["Number"].astype(int))
     stock_identifiers = (
-        portfolio[["Full Name", "Ticker", "ISIN"]].drop_duplicates().set_index(["Ticker"])
+        portfolio[["Full Name", "Ticker", "ISIN"]]
+        .drop_duplicates()
+        .set_index(["Ticker"])
     )
     balance = (
         balance.merge(stock_identifiers, left_on=balance.index, right_on="Ticker")

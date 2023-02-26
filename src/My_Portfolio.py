@@ -27,6 +27,10 @@ with st.sidebar:
 # Content
 orders = st.session_state[ORDERS]
 if orders is not None:
-    portfolio_sorter = st.selectbox("Sort by industry or country:", (SECTOR, COUNTRY, "None"))
+    portfolio_sorter = st.selectbox(
+        "Sort by industry or country:", (SECTOR, COUNTRY, "None"), index=2
+    )
     portfolio_balance = calculate_portfolio_balance(orders, START_DATE, END_DATE).copy()
-    st.plotly_chart(plot_portfolio_balance(portfolio_balance, END_DATE, sort_by=portfolio_sorter))
+    st.plotly_chart(
+        plot_portfolio_balance(portfolio_balance, END_DATE, sort_by=portfolio_sorter)
+    )

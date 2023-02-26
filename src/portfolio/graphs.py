@@ -7,31 +7,55 @@ import random
 import streamlit as st
 from constants import HISTORICAL_PRICES
 from resources.utils import download_spinner
-from resources.yahoo import download_isin_tickers, download_price_data, download_stock_info
+from resources.yahoo import (
+    download_isin_tickers,
+    download_price_data,
+    download_stock_info,
+)
 from datetime import datetime
-qualitative_color_scale = px.colors.qualitative.Plotly
 from constants import SECTOR, COUNTRY
+
+qualitative_color_scale = px.colors.qualitative.Plotly
 
 
 @st.cache_data(show_spinner=False)
-def plot_portfolio_balance(portfolio_balance: pd.DataFrame, balance_date: datetime, sort_by: str):
+def plot_portfolio_balance(
+    portfolio_balance: pd.DataFrame, balance_date: datetime, sort_by: str
+):
     """Plot balance of portfolio as pie chart"""
-    # if sort_by == SECTOR or sort_by == COUNTRY:
-    #     isin_tickers = download_isin_tickers(portfolio_balance["ISIN"].to_list())
-    #     stocks = download_stock_info(isin_tickers.values())
-    #     stock.
-    #     # portfolio_balance[SECTOR] = 
-    #     # sectors["Sector"] = {ticker: values["sector"] for ticker, values in info.items()}
+    fig_title = f"Portfolio Balance at {balance_date.strftime('%d-%m-%Y')}"
+    if sort_by == SECTOR or sort_by == COUNTRY:
+        portfolio_balance["ISIN Ticker"] = download_isin_tickers(
+            portfolio_balance["ISIN"]
+        )
+        stocks = download_stock_info(portfolio_balance["ISIN Ticker"])
 
-    #     # fig = px.sunburst(sectors, path=["Sector", sectors.index], values="Value", width=600, height=600)
-    #     # fig.update_traces(textinfo="label+percent parent")
-    #     # fig.update_layout(uniformtext=dict(minsize=8, mode='show'))
-    #     # return fig
+        if sort_by == SECTOR:
+            portfolio_balance[sort_by] = portfolio_balance["ISIN Ticker"].apply(
+                lambda ticker: stocks[ticker].assetProfile.sector
+            )
+        elif sort_by == COUNTRY:
+            portfolio_balance[sort_by] = portfolio_balance["ISIN Ticker"].apply(
+                lambda ticker: stocks[ticker].assetProfile.country
+            )
+
+        fig = px.sunburst(
+            portfolio_balance,
+            path=[sort_by, portfolio_balance.index],
+            values="Value",
+            title=fig_title,
+            width=600,
+            height=600,
+        )
+        fig.update_traces(textinfo="label+percent parent")
+        fig.update_layout(uniformtext=dict(minsize=9, mode="show"))
+        return fig
+
     return px.pie(
         portfolio_balance,
         values="Value",
         names="Full Name",
-        title=f"Portfolio Balance at {balance_date.strftime('%d-%m-%Y')}",
+        title=fig_title,
         width=600,
         height=600,
     )
