@@ -1,5 +1,6 @@
 streamlit==1.19.0
-yfinance==0.2.12
+yahooquery==2.3.0
 pandas==1.5.3
 pyportfolioopt==1.5.4
 plotly==5.13.0
+pydantic==1.10.5
