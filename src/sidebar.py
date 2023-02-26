@@ -1,13 +1,13 @@
-from data.utils import load_orders
+from resources.file import load_orders
 import streamlit as st
 
 
 def setup_sidebar() -> None:
     """Setup sidebar widgets"""
     order_file = st.file_uploader("Upload your order .csv file:", type=["csv"])
-    load_example = st.button("Load example data.")
-    if load_example:
-        with open("files/example_orders.csv", "rb") as file:
-            load_orders(file)
+    if order_file:
+        load_orders(order_file, order_file.name)
     else:
-        load_orders(order_file)
+        example_orders = "example_orders.csv"
+        with open(f"example_data/{example_orders}", "rb") as file:
+            load_orders(file, example_orders)

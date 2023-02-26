@@ -5,19 +5,57 @@ import plotly.graph_objects as go
 from math import ceil
 import random
 import streamlit as st
-from data.utils import download_price_data
+from constants import HISTORICAL_PRICES
+from resources.utils import download_spinner
+from resources.yahoo import (
+    download_isin_tickers,
+    download_price_data,
+    download_stock_info,
+)
+from datetime import datetime
+from constants import SECTOR, COUNTRY
 
 qualitative_color_scale = px.colors.qualitative.Plotly
 
 
 @st.cache_data(show_spinner=False)
-def plot_portfolio_balance(end_date, portfolio_balance):
+def plot_portfolio_balance(
+    portfolio_balance: pd.DataFrame, balance_date: datetime, sort_by: str
+):
     """Plot balance of portfolio as pie chart"""
+    fig_title = f"Portfolio Balance at {balance_date.strftime('%d-%m-%Y')}"
+    if sort_by == SECTOR or sort_by == COUNTRY:
+        portfolio_balance["ISIN Ticker"] = download_isin_tickers(
+            portfolio_balance["ISIN"]
+        )
+        stocks = download_stock_info(portfolio_balance["ISIN Ticker"])
+
+        if sort_by == SECTOR:
+            portfolio_balance[sort_by] = portfolio_balance["ISIN Ticker"].apply(
+                lambda ticker: stocks[ticker].assetProfile.sector
+            )
+        elif sort_by == COUNTRY:
+            portfolio_balance[sort_by] = portfolio_balance["ISIN Ticker"].apply(
+                lambda ticker: stocks[ticker].assetProfile.country
+            )
+
+        fig = px.sunburst(
+            portfolio_balance,
+            path=[sort_by, portfolio_balance.index],
+            values="Value",
+            title=fig_title,
+            width=600,
+            height=600,
+        )
+        fig.update_traces(textinfo="label+percent parent")
+        fig.update_layout(uniformtext=dict(minsize=9, mode="show"))
+        return fig
+
     return px.pie(
         portfolio_balance,
         values="Value",
         names="Full Name",
-        title=f"Portfolio Balance at {end_date.strftime('%d-%m-%Y')}",
+        title=fig_title,
         width=600,
         height=600,
     )
@@ -145,11 +183,10 @@ def orchestrate_price_plot(
     filter = (orders["Order Date"] >= start_date.date()) & (
         orders["Order Date"] <= end_date.date()
     )
-    filtered_orders = orders.loc[filter].copy()
-    historical_prices = download_price_data(
-        list(ticker_map.keys()), start_date.date(), end_date.date()
-    ).copy()
-    historical_prices.index = historical_prices.index.tz_localize(None)
+    filtered_orders = orders.loc[filter]
+    with download_spinner(HISTORICAL_PRICES):
+        historical_prices = download_price_data(list(ticker_map.keys()))
+    # historical_prices.index = historical_prices.index.tz_localize(None)
     grid, rows, cols = make_grid(len(ticker_map.keys()))
     ticker_iterator = iter(ticker_map.items())
 
@@ -162,7 +199,7 @@ def orchestrate_price_plot(
             grid[row][col].plotly_chart(
                 plot_historic_prices(
                     filtered_orders[filtered_orders["Ticker"] == ticker],
-                    historical_prices["Close"][ticker].copy(),
+                    historical_prices.loc[ticker, "close"],
                     ticker,
                     full_name,
                 )

@@ -1,10 +1,10 @@
 import streamlit as st
-from settings import START_DATE, END_DATE
+from setup import register_session_state_variable
 from constants import ORDERS
 from sidebar import setup_sidebar
-from portfolio.graphs import orchestrate_price_plot
+from setup import START_DATE, END_DATE
 from portfolio.status import calculate_portfolio_balance
-from settings import START_DATE, END_DATE
+from portfolio.graphs import orchestrate_price_plot
 
 # Page config
 st.set_page_config(
@@ -13,8 +13,7 @@ st.set_page_config(
 )
 
 # Set session state variables
-if ORDERS not in st.session_state:
-    st.session_state[ORDERS] = None
+register_session_state_variable(ORDERS)
 
 # Header and Intro
 st.header("Historical Prices")
@@ -37,4 +36,4 @@ if orders is not None:
             ticker: full_name
             for ticker, full_name in stocks.loc[selected_tickers, "Full Name"].items()
         }
-        fig = orchestrate_price_plot(orders, ticker_map, START_DATE, END_DATE)
+        orchestrate_price_plot(orders, ticker_map, START_DATE, END_DATE)
