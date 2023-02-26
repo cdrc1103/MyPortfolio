@@ -1,6 +1,8 @@
 import streamlit as st
 from constants import ORDERS
-from portfolio.page_content import my_portfolio_content
+from setup import START_DATE, END_DATE
+from portfolio.status import calculate_portfolio_balance
+from portfolio.graphs import plot_portfolio_balance
 
 from setup import register_session_state_variable
 from sidebar import setup_sidebar
@@ -25,4 +27,5 @@ with st.sidebar:
 # Content
 orders = st.session_state[ORDERS]
 if orders is not None:
-    my_portfolio_content(orders)
+    portfolio_balance = calculate_portfolio_balance(orders, START_DATE, END_DATE).copy()
+    st.plotly_chart(plot_portfolio_balance(END_DATE, portfolio_balance))
