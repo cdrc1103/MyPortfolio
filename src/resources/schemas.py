@@ -61,3 +61,7 @@ class StockInfo(BaseModel):
     earnings: Any
     pageViews: Any
     financialData: Any
+
+
+class Stocks(BaseModel):
+    stock_info: dict[str, StockInfo]

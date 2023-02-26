@@ -7,19 +7,31 @@ import random
 import streamlit as st
 from constants import HISTORICAL_PRICES
 from resources.utils import download_spinner
-from resources.yahoo import download_price_data
-
+from resources.yahoo import download_isin_tickers, download_price_data, download_stock_info
+from datetime import datetime
 qualitative_color_scale = px.colors.qualitative.Plotly
+from constants import SECTOR, COUNTRY
 
 
 @st.cache_data(show_spinner=False)
-def plot_portfolio_balance(end_date, portfolio_balance):
+def plot_portfolio_balance(portfolio_balance: pd.DataFrame, balance_date: datetime, sort_by: str):
     """Plot balance of portfolio as pie chart"""
+    # if sort_by == SECTOR or sort_by == COUNTRY:
+    #     isin_tickers = download_isin_tickers(portfolio_balance["ISIN"].to_list())
+    #     stocks = download_stock_info(isin_tickers.values())
+    #     stock.
+    #     # portfolio_balance[SECTOR] = 
+    #     # sectors["Sector"] = {ticker: values["sector"] for ticker, values in info.items()}
+
+    #     # fig = px.sunburst(sectors, path=["Sector", sectors.index], values="Value", width=600, height=600)
+    #     # fig.update_traces(textinfo="label+percent parent")
+    #     # fig.update_layout(uniformtext=dict(minsize=8, mode='show'))
+    #     # return fig
     return px.pie(
         portfolio_balance,
         values="Value",
         names="Full Name",
-        title=f"Portfolio Balance at {end_date.strftime('%d-%m-%Y')}",
+        title=f"Portfolio Balance at {balance_date.strftime('%d-%m-%Y')}",
         width=600,
         height=600,
     )

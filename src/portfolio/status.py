@@ -14,9 +14,6 @@ def calculate_portfolio_balance(
     end_date = end_date.date()
     filter = (orders["Order Date"] >= start_date) & (orders["Order Date"] <= end_date)
     portfolio = orders.loc[filter].copy()
-    full_names = (
-        portfolio[["Full Name", "Ticker"]].drop_duplicates().set_index(["Ticker"])
-    )
     buys = portfolio[portfolio["Order Type"] == "Buy"]
     buys = buys.groupby(["Ticker"]).sum(numeric_only=True)["Number"]
     sells = portfolio[portfolio["Order Type"] == "Sell"]
@@ -24,8 +21,11 @@ def calculate_portfolio_balance(
     balance = pd.DataFrame({"buys": buys, "sells": sells}).fillna(0)
     balance["Number"] = balance["buys"] - balance["sells"]
     balance = pd.DataFrame(balance[balance["Number"] != 0]["Number"].astype(int))
+    stock_identifiers = (
+        portfolio[["Full Name", "Ticker", "ISIN"]].drop_duplicates().set_index(["Ticker"])
+    )
     balance = (
-        balance.merge(full_names, left_on=balance.index, right_on="Ticker")
+        balance.merge(stock_identifiers, left_on=balance.index, right_on="Ticker")
         .sort_values("Full Name")
         .set_index("Ticker")
     )
