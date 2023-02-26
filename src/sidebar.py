@@ -1,4 +1,4 @@
-from data.utils import load_orders
+from resources.file import load_orders
 import streamlit as st
 
 

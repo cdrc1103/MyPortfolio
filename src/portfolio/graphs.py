@@ -5,7 +5,9 @@ import plotly.graph_objects as go
 from math import ceil
 import random
 import streamlit as st
-from data.utils import download_price_data
+from constants import HISTORICAL_PRICES
+from resources.utils import download_spinner
+from resources.yahoo import download_price_data
 
 qualitative_color_scale = px.colors.qualitative.Plotly
 
@@ -145,11 +147,10 @@ def orchestrate_price_plot(
     filter = (orders["Order Date"] >= start_date.date()) & (
         orders["Order Date"] <= end_date.date()
     )
-    filtered_orders = orders.loc[filter].copy()
-    historical_prices = download_price_data(
-        list(ticker_map.keys()), start_date.date(), end_date.date()
-    ).copy()
-    historical_prices.index = historical_prices.index.tz_localize(None)
+    filtered_orders = orders.loc[filter]
+    with download_spinner(HISTORICAL_PRICES):
+        historical_prices = download_price_data(list(ticker_map.keys()))
+    # historical_prices.index = historical_prices.index.tz_localize(None)
     grid, rows, cols = make_grid(len(ticker_map.keys()))
     ticker_iterator = iter(ticker_map.items())
 
@@ -162,7 +163,7 @@ def orchestrate_price_plot(
             grid[row][col].plotly_chart(
                 plot_historic_prices(
                     filtered_orders[filtered_orders["Ticker"] == ticker],
-                    historical_prices["Close"][ticker].copy(),
+                    historical_prices.loc[ticker, "close"],
                     ticker,
                     full_name,
                 )

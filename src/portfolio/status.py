@@ -1,7 +1,9 @@
 from datetime import datetime
 import pandas as pd
 import streamlit as st
-from data.utils import download_price_data
+from constants import HISTORICAL_PRICES
+from resources.utils import download_spinner
+from resources.yahoo import download_price_data
 
 
 @st.cache_data(show_spinner=False)
@@ -28,10 +30,11 @@ def calculate_portfolio_balance(
         .set_index("Ticker")
     )
 
-    with st.spinner("Downloading historical stock prices..."):
-        stock_prices = download_price_data(
-            balance.index.to_list(), start_date, end_date
-        ).copy()
-    balance["Closing Price"] = pd.DataFrame(stock_prices["Close"].iloc[-1, :])
+    with download_spinner(HISTORICAL_PRICES):
+        stock_prices = download_price_data(balance.index.to_list())
+
+    balance["Closing Price"] = stock_prices.pivot_table(
+        index="date", columns="symbol", values="close"
+    ).iloc[-1, :]
     balance["Value"] = balance["Number"] * balance["Closing Price"]
     return balance
