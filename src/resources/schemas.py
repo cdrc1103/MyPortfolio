@@ -30,7 +30,7 @@ class AssetProfile(BaseModel):
 class StockInfo(BaseModel):
     """Pydantic model for keys returned by 'all_modules' endpoint of yahooquery API"""
 
-    assetProfile: AssetProfile
+    assetProfile: AssetProfile | None
     recommendationTrend: Any
     cashflowStatementHistory: Any
     indexTrend: Any

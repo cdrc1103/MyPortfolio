@@ -32,13 +32,14 @@ def plot_portfolio_balance(
 
         if sort_by == SECTOR:
             portfolio_balance[sort_by] = portfolio_balance["ISIN Ticker"].apply(
-                lambda ticker: stocks[ticker].assetProfile.sector
+                lambda ticker: stocks[ticker].assetProfile.sector if stocks[ticker].assetProfile else None
             )
         elif sort_by == COUNTRY:
             portfolio_balance[sort_by] = portfolio_balance["ISIN Ticker"].apply(
-                lambda ticker: stocks[ticker].assetProfile.country
+                lambda ticker: stocks[ticker].assetProfile.country if stocks[ticker].assetProfile else None
             )
 
+        portfolio_balance = portfolio_balance.dropna(axis=0)
         fig = px.sunburst(
             portfolio_balance,
             path=[sort_by, portfolio_balance.index],
