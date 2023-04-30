@@ -158,7 +158,7 @@ def plot_historic_prices(
         ),
     )
 
-    fig.update_layout(height=400, width=600, title_text=full_name)
+    fig.update_layout(height=400, width=600, title_text=full_name, yaxis_title="€")
 
     return fig
 
@@ -208,20 +208,32 @@ def orchestrate_price_plot(
 
 
 @st.cache_data(show_spinner=False)
-def plot_value_development(value_development):
-    """"""
+def plot_portfolio_development(portfolio_values, transaction_values):
+    """Plot portfolio value development"""
     fig = go.Figure()
 
     fig.add_trace(
         go.Scatter(
-            x=value_development.index,
-            y=value_development,
-            fill='tonexty',
+            x=transaction_values.index,
+            y=transaction_values,
+            fill=None,
             showlegend=False,
+            line_color="red",
+            name="Transactions"
         )
     )
 
+    fig.add_trace(
+        go.Scatter(
+            x=portfolio_values.index,
+            y=portfolio_values,
+            fill="tonexty",
+            showlegend=False,
+            line_color="green",
+            name="Portfolio"
+        )
+    )
 
-    fig.update_layout(height=400, width=600, title_text="Portfolio Development")
+    fig.update_layout(height=400, width=600, title_text="Portfolio Development", yaxis_title="€")
 
     return fig
