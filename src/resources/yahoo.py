@@ -1,19 +1,19 @@
-from setup import START_DATE, END_DATE
 import pandas as pd
 from yahooquery import Ticker
 import yahooquery as yq
 import streamlit as st
-from resources.schemas import StockInfo, Stocks
-from datetime import datetime
+from resources.schemas import StockInfo
+from datetime import datetime, date
 
 
 @st.cache_data(show_spinner=False)
-def download_price_data(ticker_list: list[str]) -> pd.DataFrame:
+def download_price_data(ticker_list: list[str], start_date: date, end_date: date) -> pd.DataFrame:
     """Download stock prices"""
     tickers = Ticker(" ".join(ticker_list), asynchronous=True)
-    price_data = tickers.history(start=START_DATE, end=END_DATE)
+    price_data = tickers.history(start=start_date, end=end_date)
     price_data.index = pd.MultiIndex.from_tuples([(row[0], row[1].date()) if type(row[1])==datetime else row for row in price_data.index], names=["symbol", "date"])
     return price_data
+
 
 @st.cache_data(show_spinner=False)
 def download_stock_info(ticker_list: pd.Series) -> StockInfo:

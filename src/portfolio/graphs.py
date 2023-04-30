@@ -19,11 +19,11 @@ qualitative_color_scale = px.colors.qualitative.Plotly
 
 
 @st.cache_data(show_spinner=False)
-def plot_portfolio_balance(
+def plot_stock_allocation(
     portfolio_balance: pd.DataFrame, balance_date: datetime, sort_by: str
 ):
     """Plot balance of portfolio as pie chart"""
-    fig_title = f"Portfolio Balance at {balance_date.strftime('%d-%m-%Y')}"
+    fig_title = f"Portfolio Stock Allocation at {balance_date.strftime('%d-%m-%Y')}"
     if sort_by == SECTOR or sort_by == COUNTRY:
         portfolio_balance["ISIN Ticker"] = download_isin_tickers(
             portfolio_balance["ISIN"]
@@ -186,7 +186,7 @@ def orchestrate_price_plot(
     )
     filtered_orders = orders.loc[filter]
     with download_spinner(HISTORICAL_PRICES):
-        historical_prices = download_price_data(list(ticker_map.keys()))
+        historical_prices = download_price_data(list(ticker_map.keys()), start_date.date(), end_date.date())
     # historical_prices.index = historical_prices.index.tz_localize(None)
     grid, rows, cols = make_grid(len(ticker_map.keys()))
     ticker_iterator = iter(ticker_map.items())
@@ -205,3 +205,23 @@ def orchestrate_price_plot(
                     full_name,
                 )
             )
+
+
+@st.cache_data(show_spinner=False)
+def plot_value_development(value_development):
+    """"""
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter(
+            x=value_development.index,
+            y=value_development,
+            fill='tonexty',
+            showlegend=False,
+        )
+    )
+
+
+    fig.update_layout(height=400, width=600, title_text="Portfolio Development")
+
+    return fig

@@ -3,7 +3,7 @@ from setup import register_session_state_variable
 from constants import ORDERS
 from sidebar import setup_sidebar
 from setup import START_DATE, END_DATE
-from portfolio.status import calculate_portfolio_balance
+from portfolio.status import portfolio_stock_allocation
 from portfolio.graphs import orchestrate_price_plot
 
 # Page config
@@ -25,7 +25,7 @@ with st.sidebar:
 # Content
 orders = st.session_state[ORDERS]
 if orders is not None:
-    balance = calculate_portfolio_balance(orders, START_DATE, END_DATE).copy()
+    balance = portfolio_stock_allocation(orders, START_DATE, END_DATE).copy()
     stocks = orders[["Ticker", "Full Name"]].drop_duplicates().set_index(["Ticker"])
     tickers = stocks.index.to_list()
     selected_tickers = st.multiselect(
