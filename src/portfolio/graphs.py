@@ -32,11 +32,15 @@ def plot_stock_allocation(
 
         if sort_by == SECTOR:
             portfolio_balance[sort_by] = portfolio_balance["ISIN Ticker"].apply(
-                lambda ticker: stocks[ticker].assetProfile.sector if stocks[ticker].assetProfile else None
+                lambda ticker: stocks[ticker].assetProfile.sector
+                if stocks[ticker].assetProfile
+                else None
             )
         elif sort_by == COUNTRY:
             portfolio_balance[sort_by] = portfolio_balance["ISIN Ticker"].apply(
-                lambda ticker: stocks[ticker].assetProfile.country if stocks[ticker].assetProfile else None
+                lambda ticker: stocks[ticker].assetProfile.country
+                if stocks[ticker].assetProfile
+                else None
             )
 
         portfolio_balance = portfolio_balance.dropna(axis=0)
@@ -186,7 +190,9 @@ def orchestrate_price_plot(
     )
     filtered_orders = orders.loc[filter]
     with download_spinner(HISTORICAL_PRICES):
-        historical_prices = download_price_data(list(ticker_map.keys()), start_date.date(), end_date.date())
+        historical_prices = download_price_data(
+            list(ticker_map.keys()), start_date.date(), end_date.date()
+        )
     # historical_prices.index = historical_prices.index.tz_localize(None)
     grid, rows, cols = make_grid(len(ticker_map.keys()))
     ticker_iterator = iter(ticker_map.items())
@@ -219,7 +225,7 @@ def plot_portfolio_development(portfolio_values, transaction_values):
             fill=None,
             showlegend=False,
             line_color="red",
-            name="Transactions"
+            name="Transactions",
         )
     )
 
@@ -230,10 +236,12 @@ def plot_portfolio_development(portfolio_values, transaction_values):
             fill="tonexty",
             showlegend=False,
             line_color="green",
-            name="Portfolio"
+            name="Portfolio",
         )
     )
 
-    fig.update_layout(height=400, width=600, title_text="Portfolio Development", yaxis_title="€")
+    fig.update_layout(
+        height=400, width=600, title_text="Portfolio Development", yaxis_title="€"
+    )
 
     return fig

@@ -25,9 +25,7 @@ def portfolio_stock_allocation(
     portfolio["Number"] = portfolio["buys"] - portfolio["sells"]
     portfolio = pd.DataFrame(portfolio[portfolio["Number"] != 0]["Number"].astype(int))
     stock_identifiers = (
-        orders[["Full Name", "Ticker", "ISIN"]]
-        .drop_duplicates()
-        .set_index(["Ticker"])
+        orders[["Full Name", "Ticker", "ISIN"]].drop_duplicates().set_index(["Ticker"])
     )
     portfolio = (
         portfolio.merge(stock_identifiers, left_on=portfolio.index, right_on="Ticker")
@@ -36,13 +34,17 @@ def portfolio_stock_allocation(
     )
 
     stock_prices = get_stock_prices(portfolio.index.to_list(), start_date, end_date)
-    portfolio["Closing Price"] = stock_prices[stock_prices.index <= end_date].iloc[-1, :]
+    portfolio["Closing Price"] = stock_prices[stock_prices.index <= end_date].iloc[
+        -1, :
+    ]
     portfolio["Value"] = portfolio["Number"] * portfolio["Closing Price"]
     return portfolio
 
 
 @st.cache_data(show_spinner=False)
-def portfolio_value_development(orders: pd.DataFrame, start_date: datetime, end_date: datetime) -> tuple[pd.DataFrame, pd.DataFrame]:
+def portfolio_value_development(
+    orders: pd.DataFrame, start_date: datetime, end_date: datetime
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Calculate portfolio value development over time by multiplying order values with stock prices"""
     start_date = start_date.date()
     end_date = end_date.date()
@@ -50,29 +52,35 @@ def portfolio_value_development(orders: pd.DataFrame, start_date: datetime, end_
     stock_prices = get_stock_prices(orders["Ticker"].unique(), start_date, end_date)
     stock_prices = stock_prices[stock_prices.index <= end_date]
 
-    orders["Type Sign"] = orders["Order Type"].apply(lambda x: -1 if x=="Sell" else 1)
+    orders["Type Sign"] = orders["Order Type"].apply(lambda x: -1 if x == "Sell" else 1)
     orders["Number"] = orders["Number"] * orders["Type Sign"]
 
-    portfolio_values = pd.pivot_table(orders, values="Number", index="Order Date", columns="Ticker")
+    portfolio_values = pd.pivot_table(
+        orders, values="Number", index="Order Date", columns="Ticker"
+    )
     portfolio_values = cumulative_sum(portfolio_values, start_date, end_date)
     portfolio_values = portfolio_values * stock_prices
     portfolio_values = clean_nan_values(portfolio_values)
 
     orders["Order Value"] = orders["Number"] * orders["Order Price"]
-    transaction_values = pd.pivot_table(orders, values="Order Value", index="Order Date", columns="Ticker")
+    transaction_values = pd.pivot_table(
+        orders, values="Order Value", index="Order Date", columns="Ticker"
+    )
     transaction_values = cumulative_sum(transaction_values, start_date, end_date)
     transaction_values = clean_nan_values(transaction_values)
 
     return portfolio_values, transaction_values
 
 
-
-def cumulative_sum(values: pd.DataFrame, start_date: date, end_date: date) -> pd.DataFrame:
+def cumulative_sum(
+    values: pd.DataFrame, start_date: date, end_date: date
+) -> pd.DataFrame:
     """"""
     date_index = pd.date_range(start_date, end_date)
     values = values.reindex(date_index)
     values = values.fillna(0)
     return values.cumsum()
+
 
 def clean_nan_values(values: pd.DataFrame) -> pd.DataFrame:
     """"""
@@ -80,7 +88,9 @@ def clean_nan_values(values: pd.DataFrame) -> pd.DataFrame:
     return values.sum(axis=1).replace(0, np.nan)
 
 
-def get_stock_prices(ticker_list: list, start_date: date, end_date: date) -> pd.DataFrame:
+def get_stock_prices(
+    ticker_list: list, start_date: date, end_date: date
+) -> pd.DataFrame:
     """Download and post-process stock prices"""
     with download_spinner(HISTORICAL_PRICES):
         stock_prices = download_price_data(ticker_list, start_date, end_date)

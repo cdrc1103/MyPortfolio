@@ -37,9 +37,11 @@ if orders is not None:
             plot_stock_allocation(stock_allocation, END_DATE, sort_by=portfolio_sorter)
         )
     with col2:
-        portfolio_values, transaction_values = portfolio_value_development(orders, START_DATE, END_DATE)
+        portfolio_values, transaction_values = portfolio_value_development(
+            orders, START_DATE, END_DATE
+        )
         st.plotly_chart(
             plot_portfolio_development(portfolio_values, transaction_values),
-            use_container_width = True
+            use_container_width=True,
         )
         st.info("Test")
