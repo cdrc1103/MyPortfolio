@@ -11,7 +11,8 @@ from resources.yahoo import download_price_data
 def portfolio_stock_allocation(
     orders: pd.DataFrame, start_date: datetime, end_date: datetime
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Calculate the value of each stock in a portfolio from list of orders over a given timeframe"""
+    """Calculate the value of each stock in a portfolio from
+    list of orders over a given timeframe"""
     start_date = start_date.date()
     end_date = end_date.date()
 
@@ -45,7 +46,8 @@ def portfolio_stock_allocation(
 def portfolio_value_development(
     orders: pd.DataFrame, start_date: datetime, end_date: datetime
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Calculate portfolio value development over time by multiplying order values with stock prices"""
+    """Calculate portfolio value development over time
+    by multiplying order values with stock prices"""
     start_date = start_date.date()
     end_date = end_date.date()
 

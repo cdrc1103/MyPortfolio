@@ -6,7 +6,6 @@ from portfolio.graphs import plot_stock_allocation, plot_portfolio_development
 
 from setup import register_session_state_variable
 from sidebar import setup_sidebar
-from constants import ORDERS
 
 # Page config
 st.set_page_config(

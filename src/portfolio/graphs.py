@@ -12,7 +12,6 @@ from resources.yahoo import (
     download_price_data,
     download_stock_info,
 )
-from datetime import datetime
 from constants import SECTOR, COUNTRY
 
 qualitative_color_scale = px.colors.qualitative.Plotly
